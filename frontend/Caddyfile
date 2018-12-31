@@ -1,0 +1,7 @@
+0.0.0.0:2015
+gzip
+root /app/dist
+rewrite {
+    regexp .*
+    to {path} /
+}

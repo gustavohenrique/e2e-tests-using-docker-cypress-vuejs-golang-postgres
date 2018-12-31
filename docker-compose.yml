@@ -1,0 +1,55 @@
+version: "3"
+services:
+  frontend:
+    build:
+      context: ./frontend
+      args:
+        - VUE_APP_API_URL=http://backend:11080
+    container_name: frontend
+    hostname: frontend
+    ports:
+      - "2015:2015"
+    expose:
+      - "2015"
+    depends_on:
+      - backend
+    environment:
+      - VUE_APP_API_URL=http://backend:11080
+  
+  backend:
+    build: ./backend
+    container_name: backend
+    hostname: backend
+    ports:
+      - "17000:17000"
+    expose:
+      - "11080"
+    depends_on:
+      - db
+    environment:
+      - DATABASE_URL=postgres://admin:password@db:5432/todos?sslmode=disable
+    
+  db:
+    image: postgres:alpine
+    container_name: db
+    hostname: db
+    ports:
+      - "5432:5432"
+    environment:
+      - POSTGRES_USER=admin
+      - POSTGRES_PASSWORD=password
+      - POSTGRES_DB=todos
+
+  tests:
+    build: ./tests
+    container_name: tests
+    depends_on:
+      - frontend
+      - backend
+      - db
+    environment:
+      - DATABASE_URL=postgres://admin:password@db:5432/todos?sslmode=disable
+      - CYPRESS_FRONTEND_URL=http://frontend:2015
+    volumes:
+      - "./tests/cypress:/home/node/tests/cypress"
+      - "./tests/report:/home/node/tests/report"
